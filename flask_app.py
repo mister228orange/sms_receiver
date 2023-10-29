@@ -1,27 +1,72 @@
 from flask import Flask, request, Response
 import json
 import logging
-import os
+from utils import token_required
 from DB_Manager import DB_manager
 
 
 
 app = Flask(__name__)
 db = DB_manager()
-bucket = []
+
 
 @app.route('/sms', methods = ['POST'])
+@token_required
 def receive_sms():
     sms = request.get_json()
-    bucket.append(sms)
     db.handle_msg(sms)
     return Response("Success", status=202)
 
 
-@app.route('/sms', methods = ['GET'])
+@app.route('/get_all_sms', methods = ['GET'])
+@token_required
 def show_sms():
+    sms_list = db.get_all_sms()
+
+    return {
+            "sms": sms_list
+        }
+
+
+@app.route('/get_new_sms', methods = ['GET'])
+@token_required
+def show_new_sms():
     unviewed_sms = db.get_new_sms()
 
     return {
             "new_sms": unviewed_sms
         }
+
+
+@app.route('/mark_as_read', methods = ['POST'])
+@token_required
+def update_statuses():
+    logging.error(request.get_json())
+    sms_ids = request.get_json()["sms_ids"]
+    try:
+        db.mark_as_read(sms_ids)
+        return Response("Success", status=202)
+    except:
+        return Response("Something went wrong", status=500)
+
+
+@app.route('/get_incorrect_sms', methods = ['GET'])
+#@token_required
+def show_incorrect_sms():
+    incorrect_sms = db.get_incorrect_sms()
+
+    return {
+            "new_sms": incorrect_sms
+        }
+
+
+@app.route('/delete_read_sms', methods = ['DELETE'])
+@token_required
+def delete_read_sms():
+    try:
+        db.delete_read_sms()
+        return Response("Success", status=200)
+    except:
+        return Response("Something went wrong", status=500)
+
+
