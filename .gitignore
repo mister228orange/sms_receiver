@@ -17,6 +17,7 @@ build/
 .idea/
 docs/_build/
 .vscode
+*.yaml
 sms.db
 
 # Coverage reports

@@ -3,10 +3,12 @@ import json
 import logging
 from utils import token_required
 from DB_Manager import DB_manager
+from flask_cors import CORS
 
 
 
 app = Flask(__name__)
+CORS(app)
 db = DB_manager()
 
 
@@ -21,7 +23,8 @@ def receive_sms():
 @app.route('/get_all_sms', methods = ['GET'])
 @token_required
 def show_sms():
-    sms_list = db.get_all_sms()
+    src = request.args.get('src')
+    sms_list = db.get_all_sms(src)
 
     return {
             "sms": sms_list
